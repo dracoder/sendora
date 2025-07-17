@@ -1,0 +1,53 @@
+import CreditPackageService from '@/Services/CreditPackageService';
+import { Form, defaultValues } from './form';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
+import { Button } from '@/Components/ui/button';
+import { useForm } from 'react-hook-form';
+import { useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
+import { yupResolver } from '@hookform/resolvers/yup';
+import creditPackageFormSchema from '@/Validation/creditPackageFormSchema';
+import { useTranslation } from 'react-i18next';
+
+export default function CreateForm({ onSubmit, open, onOpenChange }) {
+    const { t } = useTranslation();
+    const { register, formState: { errors }, handleSubmit, watch, reset, control } = useForm({
+        defaultValues: defaultValues,
+        resolver: yupResolver(creditPackageFormSchema)
+    });
+
+    const handleStoreAction = (data) => {
+        CreditPackageService.store(data, () => {
+            toast({
+                title: t('pages.created', { name: t('pages.credit_packages') }),
+                duration: 3000
+            });
+            reset();
+            onOpenChange(false);
+            onSubmit();
+        });
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{t('pages.create', { name: t('pages.credit_packages') })}</DialogTitle>
+                </DialogHeader>
+
+                <form onSubmit={handleSubmit(handleStoreAction)}>
+                    <Form register={register} errors={errors} watch={watch} control={control} handleSubmit={handleSubmit} />
+
+                    <div className="mt-6 flex justify-end">
+                        <Button type="submit">{t('pages.save')}</Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    )
+}
